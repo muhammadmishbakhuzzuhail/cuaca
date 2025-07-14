@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+   provider = "prisma-client-js"
+}
+
+datasource db {
+   provider = "sqlite"
+   url      = "file:./dev.db"
+}
+
+model Provinsi {
+   id   String @id
+   nama String
+   kota Kota[]
+
+   @@map("provinsi")
+}
+
+model Kota {
+   id        String      @id
+   nama      String
+   kecamatan Kecamatan[]
+
+   provinsiId String
+   provinsi   Provinsi @relation(fields: [provinsiId], references: [id], onDelete: Cascade)
+
+   @@map("kota")
+}
+
+model Kecamatan {
+   id   String @id
+   nama String
+   desa Desa[]
+
+   kotaId String
+   Kota   Kota   @relation(fields: [kotaId], references: [id], onDelete: Cascade)
+
+   @@map("kecamatan")
+}
+
+model Desa {
+   id   String @id
+   nama String
+
+   kecamatanId String
+   Kecamatan   Kecamatan @relation(fields: [kecamatanId], references: [id], onDelete: Cascade)
+
+   @@map("desa")
+}
