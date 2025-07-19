@@ -2,7 +2,7 @@ import fs from "fs";
 import csv from "csv-parser";
 import path from "path";
 
-import type { Desa, Kecamatan, Kota, Base } from "@/types/base";
+import type { Desa, Kecamatan, Kota, Base } from "@/types/data";
 import { prisma } from "../src/lib/prisma";
 
 type Data = { kode: string; nama: string };

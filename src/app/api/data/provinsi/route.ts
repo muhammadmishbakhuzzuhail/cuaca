@@ -1,19 +1,21 @@
-import { getListProvinsi } from "@/services/provinsi.service";
-import type { Response } from "@/types/server-response";
+import { getAllProvinsi } from "@/services/provinsi.service";
+import { ServerResponse } from "@/types/server-response";
 import { NextResponse } from "next/server";
-
-type Data = { kode: string; nama: string };
+import { Provinsi } from "@/types/data";
 
 const GET = async () => {
    try {
-      const res = await getListProvinsi();
+      const res = await getAllProvinsi();
 
       if (!res || res.length === 0) {
-         return NextResponse.json<Response<null>>(
+         return NextResponse.json<ServerResponse>(
             {
+               code: 404,
                success: false,
-               message: "List provinsi is empty",
-               error: "Not found",
+               message: "Data provinsi tidak ditemukan",
+               errors: {
+                  data: [`Data provinsi tidak ditemukan di dalam tabel provinsi`],
+               },
             },
             {
                status: 404,
@@ -21,10 +23,11 @@ const GET = async () => {
          );
       }
 
-      return NextResponse.json<Response<Data[]>>(
+      return NextResponse.json<ServerResponse<Omit<Provinsi, "kota">[]>>(
          {
+            code: 200,
             success: true,
-            message: "Success get list provinsi",
+            message: "Berhasil mengambil data provinsi",
             data: res,
          },
          {
@@ -32,12 +35,13 @@ const GET = async () => {
          }
       );
    } catch (error) {
-      console.error("FAILED_GET_LIST_PROVINSI: ", error);
-      return NextResponse.json<Response>(
+      console.error("FAILED_GET_PROVINSI: ", error);
+      return NextResponse.json<ServerResponse>(
          {
+            code: 500,
             success: false,
-            message: "Failed get list provinsi",
-            error: "Something went wrong",
+            message: "Gagal mengambil data provinsi",
+            errors: { server: ["Terjadi kesalahan pada server. Silakan coba lagi nanti."] },
          },
          {
             status: 500,

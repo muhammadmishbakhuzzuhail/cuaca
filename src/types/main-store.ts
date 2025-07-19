@@ -1,4 +1,4 @@
 export interface MainStore {
-   kode: string;
-   setKode: (id: string) => void;
+   mainDesaId: string;
+   setMainDesaId: (id: string) => void;
 }

@@ -14,13 +14,15 @@ export const dropdownStore = createStore<DropdownStore>()(
             setKotaId: (id) => set({ kotaId: id, kecamatanId: "", desaId: "" }),
             setKecamatanId: (id) => set({ kecamatanId: id, desaId: "" }),
             setDesaId: (id) => set({ desaId: id }),
-            resetDropdown: () =>
-               set({
-                  provinsiId: "",
-                  kotaId: "",
-                  kecamatanId: "",
-                  desaId: "",
-               }),
+            namaProvinsi: "Aceh",
+            namaKota: "Kab. Aceh Selatan",
+            namaKecamatan: "Bakongan",
+            namaDesa: "Keude Bakongan",
+            setNamaProvinsi: (nama) =>
+               set({ namaProvinsi: nama, namaKota: "", namaKecamatan: "", namaDesa: "" }),
+            setNamaKota: (nama) => set({ namaKota: nama, namaKecamatan: "", namaDesa: "" }),
+            setNamaKecamatan: (nama) => set({ namaKecamatan: nama, namaDesa: "" }),
+            setNamaDesa: (nama) => set({ namaDesa: nama }),
          }),
          {
             name: "dropdown-store",

@@ -4,32 +4,23 @@ import * as React from "react";
 import Dropdown from "./dropdown";
 import { useDropdownStore } from "@/hooks/useDropdownStore";
 import { useToggleContext } from "@/hooks/useToggleContext";
-import { getListProvinsi } from "@/utils/getListProvinsi";
-import { Base, Kota, Kecamatan, Desa } from "@/types/base";
-import { getListKota } from "@/utils/getListKota";
-import { getListKecamatan } from "@/utils/getListKecamatan";
-import { getListDesa } from "@/utils/getListDesa";
-import { getTitleProvinsi } from "@/utils/getTitleProvinsi";
-import { getTitleKecamatan } from "@/utils/getTitleKecamatan";
-import { getTitleDesa } from "@/utils/getTitleDesa";
-import { getTitleKota } from "@/utils/getTitleKota";
-import { PropsDropdown } from "@/types/props-dropdown";
+import { Provinsi, Kota, Kecamatan, Desa } from "@/types/data";
+import { getDataKota } from "@/utils/getDataKota";
+import { getDataKecamatan } from "@/utils/getDataKecamatan";
+import { getDataDesa } from "@/utils/getDataDesa";
+import { getDataProvinsi } from "@/utils/getDataProvinsi";
+import { useMainStore } from "@/hooks/ueMainStore";
 
 const SearchDropdown = () => {
    // Save data
-   const [dataProvinsi, setDataProvinsi] = React.useState<Omit<Base, "kota">[]>([]);
+   const [dataProvinsi, setDataProvinsi] = React.useState<Omit<Provinsi, "kota">[]>([]);
    const [dataKota, setDataKota] = React.useState<Omit<Kota, "kecamatan">[]>([]);
    const [dataKecamatan, setDataKecamatan] = React.useState<Omit<Kecamatan, "desa">[]>([]);
    const [dataDesa, setDataDesa] = React.useState<Desa[]>([]);
 
-   // Name title
-   const [titleProvinsi, setTitleProvinsi] = React.useState<string>("");
-   const [titleKota, setTitleKota] = React.useState<string>("");
-   const [titleKecamatan, setTitleKecamatan] = React.useState<string>("");
-   const [titleDesa, setTitleDesa] = React.useState<string>("");
-
    const { isSearchDropdownOpen, setIsLoading, titleDropdownOpen, setTitleDropdownOpen } =
       useToggleContext();
+
    const {
       desaId,
       setDesaId,
@@ -39,7 +30,16 @@ const SearchDropdown = () => {
       setKotaId,
       provinsiId,
       setProvinsiId,
+      namaDesa,
+      setNamaDesa,
+      namaKecamatan,
+      setNamaKecamatan,
+      namaKota,
+      setNamaKota,
+      namaProvinsi,
+      setNamaProvinsi,
    } = useDropdownStore();
+   const { setMainDesaId } = useMainStore();
 
    const wrapperRef = React.useRef<HTMLDivElement>(null);
 
@@ -49,30 +49,31 @@ const SearchDropdown = () => {
          try {
             // Ketika provinsi berubah, auto-select kota pertama
             if (provinsiId && !kotaId) {
-               const kotaResponse = await getListKota({ provinsiId });
+               const kotaResponse = await getDataKota(provinsiId);
                if (kotaResponse.data && kotaResponse.data.length > 0) {
                   const firstKota = kotaResponse.data[0];
-                  setKotaId(firstKota.kode);
+                  setKotaId(firstKota.kotaId);
                   setDataKota(kotaResponse.data);
                }
             }
 
             // Ketika kota berubah, auto-select kecamatan pertama
             if (kotaId && !kecamatanId) {
-               const kecamatanResponse = await getListKecamatan({ kotaId });
+               const kecamatanResponse = await getDataKecamatan(kotaId);
                if (kecamatanResponse.data && kecamatanResponse.data.length > 0) {
                   const firstKecamatan = kecamatanResponse.data[0];
-                  setKecamatanId(firstKecamatan.kode);
+                  setKecamatanId(firstKecamatan.kecamatanId);
                   setDataKecamatan(kecamatanResponse.data);
                }
             }
 
             // Ketika kecamatan berubah, auto-select desa pertama
             if (kecamatanId && !desaId) {
-               const desaResponse = await getListDesa({ kecamatanId });
+               const desaResponse = await getDataDesa(kecamatanId);
                if (desaResponse.data && desaResponse.data.length > 0) {
                   const firstDesa = desaResponse.data[0];
-                  setDesaId(firstDesa.kode);
+                  setDesaId(firstDesa.desaId);
+                  setMainDesaId(firstDesa.desaId); // Update main store
                   setDataDesa(desaResponse.data);
                }
             }
@@ -86,49 +87,62 @@ const SearchDropdown = () => {
       }
    }, [provinsiId, kotaId, kecamatanId, isSearchDropdownOpen]);
 
-   // Revalidate titles ketika ID berubah
+   // Revalidate titles ketika ID berubah (manual)
+   // Hanya untuk set title provinsi
    React.useEffect(() => {
       const revalidateTitles = async () => {
          setIsLoading(true);
          try {
             // Revalidate title provinsi
             if (provinsiId) {
-               const provinsi = await getTitleProvinsi({ provinsiId });
-               if (provinsi?.data?.nama) {
-                  setTitleProvinsi(provinsi.data.nama);
+               const provinsi = await getDataProvinsi();
+               if (provinsi.data && provinsi.data.length > 0) {
+                  const found = provinsi.data?.find((item) => item.provinsiId === provinsiId);
+                  if (found) {
+                     setNamaProvinsi(found.nama);
+                  }
                }
             } else {
-               setTitleProvinsi("");
+               setNamaProvinsi("");
             }
 
             // Revalidate title kota
             if (kotaId) {
-               const kota = await getTitleKota({ kotaId });
-               if (kota?.data?.nama) {
-                  setTitleKota(kota.data.nama);
+               const kota = await getDataKota(provinsiId);
+               if (kota.data && kota.data.length > 0) {
+                  const found = kota.data.find((item) => item.kotaId === kotaId);
+                  if (found) {
+                     setNamaKota(found.nama);
+                  }
                }
             } else {
-               setTitleKota("");
+               setNamaKota("");
             }
 
             // Revalidate title kecamatan
             if (kecamatanId) {
-               const kecamatan = await getTitleKecamatan({ kecamatanId });
-               if (kecamatan.data?.nama) {
-                  setTitleKecamatan(kecamatan.data.nama);
+               const kecamatan = await getDataKecamatan(kotaId);
+               if (kecamatan.data && kecamatan.data.length > 0) {
+                  const found = kecamatan.data.find((item) => item.kecamatanId === kecamatanId);
+                  if (found) {
+                     setNamaKecamatan(found.nama);
+                  }
                }
             } else {
-               setTitleKecamatan("");
+               setNamaKecamatan("");
             }
 
             // Revalidate title desa
             if (desaId) {
-               const desa = await getTitleDesa({ desaId });
-               if (desa.data?.nama) {
-                  setTitleDesa(desa.data.nama);
+               const desa = await getDataDesa(kecamatanId);
+               if (desa.data && desa.data.length > 0) {
+                  const found = desa.data.find((item) => item.desaId === desaId);
+                  if (found) {
+                     setNamaDesa(found.nama);
+                  }
                }
             } else {
-               setTitleDesa("");
+               setNamaDesa("");
             }
          } catch (err) {
             console.error("Error revalidating titles:", err);
@@ -149,24 +163,24 @@ const SearchDropdown = () => {
       try {
          switch (titleDropdownOpen) {
             case "provinsi":
-               response = await getListProvinsi();
+               response = await getDataProvinsi();
                setDataProvinsi(response.data || []);
                break;
             case "kota":
                if (provinsiId) {
-                  response = await getListKota({ provinsiId });
+                  response = await getDataKota(provinsiId);
                   setDataKota(response.data || []);
                }
                break;
             case "kecamatan":
                if (kotaId) {
-                  response = await getListKecamatan({ kotaId });
+                  response = await getDataKecamatan(kotaId);
                   setDataKecamatan(response.data || []);
                }
                break;
             case "desa":
                if (kecamatanId) {
-                  response = await getListDesa({ kecamatanId });
+                  response = await getDataDesa(kecamatanId);
                   setDataDesa(response.data || []);
                }
                break;
@@ -195,65 +209,78 @@ const SearchDropdown = () => {
       };
    }, [handleDropdown]);
 
-   const dataDropdown: PropsDropdown[] = [
-      {
-         items: dataProvinsi,
-         title: titleProvinsi,
-         label: "Provinsi",
-         onClick: () => setTitleDropdownOpen((prev) => (prev === "provinsi" ? "" : "provinsi")),
-         value: provinsiId,
-         setValue: setProvinsiId,
-         open: titleDropdownOpen === "provinsi",
-      },
-      {
-         items: dataKota,
-         title: titleKota,
-         label: "Kota/Kabupaten",
-         onClick: () => setTitleDropdownOpen((prev) => (prev === "kota" ? "" : "kota")),
-         value: kotaId,
-         setValue: setKotaId,
-         open: titleDropdownOpen === "kota",
-      },
-      {
-         items: dataKecamatan,
-         title: titleKecamatan,
-         label: "Kecamatan",
-         onClick: () => setTitleDropdownOpen((prev) => (prev === "kecamatan" ? "" : "kecamatan")),
-         value: kecamatanId,
-         setValue: setKecamatanId,
-         open: titleDropdownOpen === "kecamatan",
-      },
-      {
-         items: dataDesa,
-         title: titleDesa,
-         label: "Desa",
-         onClick: () => setTitleDropdownOpen((prev) => (prev === "desa" ? "" : "desa")),
-         value: desaId,
-         setValue: setDesaId,
-         open: titleDropdownOpen === "desa",
-      },
-   ];
+   const formattedProvinsi = dataProvinsi.map((item) => ({
+      id: item.provinsiId,
+      nama: item.nama,
+   }));
+
+   const formattedKota = dataKota.map((item) => ({
+      id: item.kotaId,
+      nama: item.nama,
+   }));
+
+   const formattedKecamatan = dataKecamatan.map((item) => ({
+      id: item.kecamatanId,
+      nama: item.nama,
+   }));
+
+   const formattedDesa = dataDesa.map((item) => ({
+      id: item.desaId,
+      nama: item.nama,
+   }));
 
    return (
-      <div
-         ref={wrapperRef}
-         className={`flex justify-around items-center transform transition duration-300 ${
-            isSearchDropdownOpen ? "opacity-100" : "opacity-0"
-         } gap-4`}
-      >
-         {dataDropdown.map(({ items, title, label, onClick, open, value, setValue }, id) => (
-            <Dropdown
-               key={id}
-               items={items}
-               title={title}
-               label={label}
-               value={value}
-               setValue={setValue}
-               open={open}
-               onClick={onClick}
-            />
-         ))}
-      </div>
+      <>
+         {isSearchDropdownOpen && (
+            <div
+               ref={wrapperRef}
+               className={`flex justify-around items-center transform transition duration-300 ${
+                  isSearchDropdownOpen ? "opacity-100" : "opacity-0"
+               } gap-4`}
+            >
+               <Dropdown
+                  items={formattedProvinsi}
+                  title={namaProvinsi}
+                  label="Provinsi"
+                  open={titleDropdownOpen === "provinsi"}
+                  value={provinsiId}
+                  setValue={setProvinsiId}
+                  onClick={() =>
+                     setTitleDropdownOpen((prev) => (prev === "provinsi" ? "" : "provinsi"))
+                  }
+               />
+               <Dropdown
+                  items={formattedKota}
+                  title={namaKota}
+                  label="Kota/Kabupaten"
+                  open={titleDropdownOpen === "kota"}
+                  value={kotaId}
+                  setValue={setKotaId}
+                  onClick={() => setTitleDropdownOpen((prev) => (prev === "kota" ? "" : "kota"))}
+               />
+               <Dropdown
+                  items={formattedKecamatan}
+                  title={namaKecamatan}
+                  label="Kecamatan"
+                  open={titleDropdownOpen === "kecamatan"}
+                  value={kecamatanId}
+                  setValue={setKecamatanId}
+                  onClick={() =>
+                     setTitleDropdownOpen((prev) => (prev === "kecamatan" ? "" : "kecamatan"))
+                  }
+               />
+               <Dropdown
+                  items={formattedDesa}
+                  title={namaDesa}
+                  label="Desa"
+                  open={titleDropdownOpen === "desa"}
+                  value={desaId}
+                  setValue={setDesaId}
+                  onClick={() => setTitleDropdownOpen((prev) => (prev === "desa" ? "" : "desa"))}
+               />
+            </div>
+         )}
+      </>
    );
 };
 

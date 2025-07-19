@@ -1,20 +1,23 @@
-import { getListKecamatan } from "@/services/kecamatan.service";
-import type { Response } from "@/types/server-response";
+import { getKecamatanByKotaId } from "@/services/kecamatan.service";
+import { ServerResponse } from "@/types/server-response";
+import { Kecamatan } from "@/types/data";
 import { NextRequest, NextResponse } from "next/server";
+import { isKotaIdValid } from "@/services/validation.service";
 
-type Data = { kode: string; nama: string };
-type Body = { kotaId: string };
-
-const POST = async (request: NextRequest) => {
+const GET = async (request: NextRequest) => {
    try {
-      const body: Body = await request.json();
-      console.log("diterima", body.kotaId);
-      if (!body.kotaId) {
-         return NextResponse.json<Response<null>>(
+      const searchParams = request.nextUrl.searchParams;
+      const kotaId = searchParams.get("kotaId")!;
+
+      if (!kotaId) {
+         return NextResponse.json<ServerResponse>(
             {
+               code: 400,
                success: false,
-               message: "Cannot found ID kota",
-               error: "Bad request",
+               message: "Permintaan buruk",
+               errors: {
+                  kotaId: ["Query kota ID tidak boleh kosong"],
+               },
             },
             {
                status: 400,
@@ -22,14 +25,30 @@ const POST = async (request: NextRequest) => {
          );
       }
 
-      const res = await getListKecamatan(body.kotaId);
+      const isKotaIdExist = await isKotaIdValid(kotaId);
+
+      if (!isKotaIdExist) {
+         return NextResponse.json<ServerResponse>({
+            code: 400,
+            success: false,
+            message: "Permintaan buruk",
+            errors: {
+               kecamatanId: ["Kota ID tidak valid"],
+            },
+         });
+      }
+
+      const res = await getKecamatanByKotaId(kotaId);
 
       if (!res || res.length === 0) {
-         return NextResponse.json<Response<null>>(
+         return NextResponse.json<ServerResponse>(
             {
+               code: 404,
                success: false,
-               message: "List kecamatan is empty",
-               error: "Not found",
+               message: "Data kecamatan tidak ditemukan",
+               errors: {
+                  data: [`Data kecamatan dengan kota ID ${kotaId} tidak ditemukan`],
+               },
             },
             {
                status: 404,
@@ -37,10 +56,11 @@ const POST = async (request: NextRequest) => {
          );
       }
 
-      return NextResponse.json<Response<Data[]>>(
+      return NextResponse.json<ServerResponse<Omit<Kecamatan, "desa">[]>>(
          {
+            code: 200,
             success: true,
-            message: "Success get list kecamatan",
+            message: "Berhasil mengambil data kecamatan",
             data: res,
          },
          {
@@ -48,12 +68,15 @@ const POST = async (request: NextRequest) => {
          }
       );
    } catch (error) {
-      console.error("FAILED_GET_LIST_KECAMATAN: ", error);
-      return NextResponse.json<Response>(
+      console.error("FAILED_GET_KECAMATAN: ", error);
+      return NextResponse.json<ServerResponse>(
          {
+            code: 500,
             success: false,
-            message: "Failed get list kecamatan",
-            error: "Something went wrong",
+            message: "Gagal mengambil data kecamatan",
+            errors: {
+               server: ["Terjadi kesalahan pada server. Silahkan coba lagi nanti"],
+            },
          },
          {
             status: 500,
@@ -62,4 +85,4 @@ const POST = async (request: NextRequest) => {
    }
 };
 
-export { POST };
+export { GET };

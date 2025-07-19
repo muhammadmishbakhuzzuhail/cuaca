@@ -1,6 +1,18 @@
-export interface Response<T = unknown> {
+export interface ServerResponse<T = null> {
+   code: number;
    success: boolean;
    message: string;
    data?: T;
-   error?: string;
+   errors?: Partial<Record<Fields, string[]>>;
 }
+
+type Fields =
+   | "server"
+   | "desaId"
+   | "kecamatanId"
+   | "kotaId"
+   | "provinsiId"
+   | "data"
+   | "limit"
+   | "page"
+   | "input";

@@ -6,8 +6,8 @@ export const mainStore = createStore<MainStore>()(
    devtools(
       persist(
          (set) => ({
-            kode: "11.01.01.2001",
-            setKode: (id) => set({ kode: id }),
+            mainDesaId: "11.01.01.2001", // ketika klik card tertentu
+            setMainDesaId: (id: string) => set({ mainDesaId: id }),
          }),
          {
             name: "main-store",

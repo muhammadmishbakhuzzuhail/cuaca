@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Poppins, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { MainStoreProvider } from "@/context/main-store";
-import { ToggleContextProvider } from "@/context/toggle-context";
-import { ListStoreProvider } from "@/context/dropdown-store";
+import { Providers } from "./provider";
 
 const geistSans = Geist({
    variable: "--font-geist-sans",
@@ -13,6 +11,17 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
    variable: "--font-geist-mono",
    subsets: ["latin"],
+});
+
+const poppins = Poppins({
+   subsets: ["latin"],
+   weight: ["400", "600", "700"],
+   variable: "--font-poppins",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+   subsets: ["latin"],
+   variable: "--font-plus-jakarta-sans",
 });
 
 export const metadata: Metadata = {
@@ -28,13 +37,9 @@ export default function RootLayout({
    return (
       <html lang="en">
          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased w-[1440px] mx-auto p-4`}
+            className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${plusJakartaSans.variable} antialiased w-[1440px] mx-auto p-4 bg-purple-100`}
          >
-            <ToggleContextProvider>
-               <MainStoreProvider>
-                  <ListStoreProvider>{children}</ListStoreProvider>
-               </MainStoreProvider>
-            </ToggleContextProvider>
+            <Providers>{children}</Providers>
          </body>
       </html>
    );

@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { Provinsi } from "@/types/data";
 
-type Result = { kode: string; nama: string };
-
-export const getListProvinsi = async (): Promise<Result[]> => {
+export const getAllProvinsi = async (): Promise<Omit<Provinsi, "kota">[]> => {
    const data = await prisma.provinsi.findMany({
       select: {
          id: true,
@@ -11,7 +10,7 @@ export const getListProvinsi = async (): Promise<Result[]> => {
    });
 
    return data.map((item) => ({
-      kode: item.id,
+      provinsiId: item.id,
       nama: item.nama,
    }));
 };

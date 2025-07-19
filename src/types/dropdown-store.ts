@@ -7,5 +7,12 @@ export interface DropdownStore {
    setKotaId: (id: string) => void;
    setKecamatanId: (id: string) => void;
    setDesaId: (id: string) => void;
-   resetDropdown: () => void;
+   namaProvinsi: string;
+   namaKota: string;
+   namaKecamatan: string;
+   namaDesa: string;
+   setNamaProvinsi: (nama: string) => void;
+   setNamaKota: (nama: string) => void;
+   setNamaKecamatan: (nama: string) => void;
+   setNamaDesa: (nama: string) => void;
 }

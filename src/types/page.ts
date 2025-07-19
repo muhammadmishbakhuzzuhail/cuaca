@@ -1,8 +1,8 @@
 export interface Page {
    page: {
-      size: number;
+      limit: number;
       total: number;
       totalPages: number;
-      current: number;
+      current: number; // access page
    };
 }

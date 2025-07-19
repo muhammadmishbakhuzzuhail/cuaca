@@ -9,7 +9,15 @@ export const useDropdownStore = () => {
    const setKecamatanId = useDropdownStoreContext((state) => state.setKecamatanId);
    const desaId = useDropdownStoreContext((state) => state.desaId);
    const setDesaId = useDropdownStoreContext((state) => state.setDesaId);
-   const resetDropdown = useDropdownStoreContext((state) => state.resetDropdown);
+
+   const namaProvinsi = useDropdownStoreContext((state) => state.namaProvinsi);
+   const setNamaProvinsi = useDropdownStoreContext((state) => state.setNamaProvinsi);
+   const namaKota = useDropdownStoreContext((state) => state.namaKota);
+   const setNamaKota = useDropdownStoreContext((state) => state.setNamaKota);
+   const namaKecamatan = useDropdownStoreContext((state) => state.namaKecamatan);
+   const setNamaKecamatan = useDropdownStoreContext((state) => state.setNamaKecamatan);
+   const namaDesa = useDropdownStoreContext((state) => state.namaDesa);
+   const setNamaDesa = useDropdownStoreContext((state) => state.setNamaDesa);
 
    return {
       provinsiId,
@@ -20,6 +28,13 @@ export const useDropdownStore = () => {
       setKecamatanId,
       desaId,
       setDesaId,
-      resetDropdown,
+      namaProvinsi,
+      setNamaProvinsi,
+      namaKota,
+      setNamaKota,
+      namaKecamatan,
+      setNamaKecamatan,
+      namaDesa,
+      setNamaDesa,
    };
 };
