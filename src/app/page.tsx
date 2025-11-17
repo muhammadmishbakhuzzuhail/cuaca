@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import ButtonSearchDropdown from "./_components/button-search-dropdown";
 import GridCardPreview from "./_components/grid-card-preview";
 import SearchDropdown from "./_components/search-dropdown";
@@ -13,7 +14,10 @@ const Home = () => {
         </div>
         <SearchDropdown />
       </div>
-      <GridCardPreview />
+
+      <Suspense fallback={<div>Memuat preview...</div>}>
+        <GridCardPreview />
+      </Suspense>
     </div>
   );
 };
