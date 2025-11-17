@@ -1,12 +1,12 @@
 export const getBaseUrl = () => {
-  // prefer explicit NEXT_PUBLIC_BASE_URL (set this in .env.local for dev and in Vercel env for prod)
+  // pakai NEXT_PUBLIC_BASE_URL bila diset (dev + prod)
   const explicit = process.env.NEXT_PUBLIC_BASE_URL;
-  if (explicit) return explicit.replace(/\/$/, ""); // strip trailing slash
+  if (explicit) return explicit.replace(/\/$/, "");
 
-  // if on Vercel, VERCEL_URL is set (without protocol), build https url
+  // Vercel provides VERCEL_URL (host without protocol) per-deployment
   if (process.env.VERCEL_URL)
     return `https://${process.env.VERCEL_URL}`.replace(/\/$/, "");
 
-  // fallback to localhost
+  // fallback ke localhost saat dev
   return "http://localhost:3000";
 };
