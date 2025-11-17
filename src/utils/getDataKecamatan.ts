@@ -1,34 +1,28 @@
 "use server";
 
-import { getBaseUrl } from "@/lib/getBaseUrl";
-import { Kecamatan } from "@/types/data";
-import { ServerResponse } from "@/types/server-response";
-import axios from "axios";
+import { parseError, ServerResponse } from "@/types/server-response";
+import type { Kecamatan } from "@/types/data";
+import { getKecamatanByKotaId } from "@/services/kecamatan.service";
 
-export const getDataKecamatan = async (kotaId: string) => {
-  if (!kotaId) {
-    throw new Error("Parameter kotaId tidak boleh kosong");
-  }
-
+export const getDataKecamatan = async (
+  kotaId: string
+): Promise<ServerResponse<Omit<Kecamatan, "desa">[]>> => {
+  if (!kotaId) throw new Error("Parameter kotaId tidak boleh kosong");
   try {
-    const BASE = getBaseUrl();
-    const res = await axios.get<ServerResponse<Omit<Kecamatan, "desa">[]>>(
-      `${BASE}/api/data/kecamatan`,
-      {
-        params: {
-          kotaId,
-        },
-        timeout: 5000,
-        timeoutErrorMessage: "Server sedang sibuk",
-      }
-    );
-
-    return res.data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Gagal mengambil data kecamatan: ${error.message}`);
-    } else {
-      throw new Error("Terjadi kesalahan yang tidak diketahui.");
-    }
+    const data = await getKecamatanByKotaId(kotaId);
+    return {
+      code: 200,
+      success: true,
+      message: "Berhasil mengambil data kecamatan",
+      data,
+    };
+  } catch (error: unknown) {
+    const parsed = parseError(error);
+    return {
+      code: 500,
+      success: false,
+      message: `Gagal mengambil data kecamatan: ${parsed.message ?? "unknown"}`,
+      errors: parsed.errors,
+    };
   }
 };

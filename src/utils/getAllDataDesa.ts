@@ -1,42 +1,75 @@
 "use server";
 
-import { ServerResponse } from "@/types/server-response";
-import axios from "axios";
-import { getBaseUrl } from "@/lib/getBaseUrl"; // added
+import { parseError, ServerResponse } from "@/types/server-response";
+import { getDesaByInput } from "@/services/desa.service";
+import { getKecamatanByInput } from "@/services/kecamatan.service";
+import { getKotaByInput } from "@/services/kota.service";
 
-interface Data {
+interface DataRow {
   desaId: string;
   namaDesa: string;
-  kecamatanId: string;
   namaKecamatan: string;
-  kotaId: string;
   namaKota: string;
 }
 
-export const getAllDataDesa = async (input: string) => {
-  if (!input) {
-    throw new Error("Parameter input tidak boleh kosong");
-  }
+type DesaServiceRow = {
+  desaId: string;
+  namaDesa: string;
+  kecamatanId?: string;
+  namaKecamatan?: string;
+  kotaId?: string;
+  namaKota?: string;
+};
+
+export const getAllDataDesa = async (
+  input: string
+): Promise<ServerResponse<DataRow[]>> => {
+  if (!input) throw new Error("Parameter input tidak boleh kosong");
 
   try {
-    const BASE = getBaseUrl();
-    const res = await axios.get<ServerResponse<Data[]>>(
-      `${BASE}/api/data/list/desa`,
-      {
-        params: {
-          input,
-        },
-        timeout: 5000,
-        timeoutErrorMessage: "Server sedang sibuk",
-      }
+    const rows = (await getDesaByInput(input)) as DesaServiceRow[];
+
+    const kecamatanIds = Array.from(
+      new Set(rows.map((r) => r.kecamatanId).filter(Boolean) as string[])
+    );
+    const kotaIds = Array.from(
+      new Set(rows.map((r) => r.kotaId).filter(Boolean) as string[])
     );
 
-    return res.data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Gagal mengambil data desa: ${error.message}`);
-    } else {
-      throw new Error("Terjadi kesalahan yang tidak diketahui.");
-    }
+    const [kecamatanList, kotaList] = await Promise.all([
+      kecamatanIds.length
+        ? getKecamatanByInput(kecamatanIds)
+        : Promise.resolve([]),
+      kotaIds.length ? getKotaByInput(kotaIds) : Promise.resolve([]),
+    ]);
+
+    const kecMap: Record<string, string> = {};
+    kecamatanList.forEach((k) => (kecMap[k.kecamatanId] = k.namaKecamatan));
+
+    const kotaMap: Record<string, string> = {};
+    kotaList.forEach((k) => (kotaMap[k.kotaId] = k.namaKota));
+
+    const normalized: DataRow[] = rows.map((r) => ({
+      desaId: r.desaId,
+      namaDesa: r.namaDesa ?? "",
+      namaKecamatan:
+        r.namaKecamatan ?? (r.kecamatanId ? kecMap[r.kecamatanId] ?? "" : ""),
+      namaKota: r.namaKota ?? (r.kotaId ? kotaMap[r.kotaId] ?? "" : ""),
+    }));
+
+    return {
+      code: 200,
+      success: true,
+      message: "Berhasil mencari desa",
+      data: normalized,
+    };
+  } catch (err: unknown) {
+    const parsed = parseError(err);
+    return {
+      code: 500,
+      success: false,
+      message: `Gagal mengambil data desa: ${parsed.message}`,
+      errors: parsed.errors,
+    };
   }
 };

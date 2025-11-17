@@ -1,27 +1,27 @@
 "use server";
 
-import axios from "axios";
-import { ServerResponse } from "@/types/server-response";
-import { Provinsi } from "@/types/data";
-import { getBaseUrl } from "@/lib/getBaseUrl";
+import { parseError, ServerResponse } from "@/types/server-response";
+import type { Provinsi } from "@/types/data";
+import { getAllProvinsi } from "@/services/provinsi.service";
 
-export const getDataProvinsi = async () => {
+export const getDataProvinsi = async (): Promise<
+  ServerResponse<Omit<Provinsi, "kota">[]>
+> => {
   try {
-    const BASE = getBaseUrl();
-    const res = await axios.get<ServerResponse<Omit<Provinsi, "kota">[]>>(
-      `${BASE}/api/data/provinsi`,
-      {
-        timeout: 5000,
-        timeoutErrorMessage: "Server sedang sibuk",
-      }
-    );
-
-    return res.data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Gagal mengambil data provinsi: ${error.message}`);
-    } else {
-      throw new Error("Terjadi kesalahan yang tidak diketahui.");
-    }
+    const data = await getAllProvinsi();
+    return {
+      code: 200,
+      success: true,
+      message: "Berhasil mengambil data provinsi",
+      data,
+    };
+  } catch (error: unknown) {
+    const parsed = parseError(error);
+    return {
+      code: 500,
+      success: false,
+      message: `Gagal mengambil data provinsi: ${parsed.message ?? "unknown"}`,
+      errors: parsed.errors,
+    };
   }
 };

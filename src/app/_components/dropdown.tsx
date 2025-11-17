@@ -20,6 +20,7 @@ export interface PropsDropdown {
   setValue: (id: string) => void;
   open: boolean;
   onClick: () => void;
+  onSelect?: (item: { id: string; nama: string }) => void; // new optional callback
 }
 
 const Dropdown = ({
@@ -30,6 +31,7 @@ const Dropdown = ({
   setValue,
   open,
   onClick,
+  onSelect,
 }: PropsDropdown) => {
   const router = useRouter();
 
@@ -68,7 +70,17 @@ const Dropdown = ({
         <DropdownMenuRadioGroup
           value={value}
           onValueChange={(id) => {
+            // find item and notify parent immediately
+            const found = items.find((it) => it.id === id);
             setValue(id);
+            if (found && typeof onSelect === "function") {
+              try {
+                onSelect(found);
+              } catch {
+                /* ignore */
+              }
+            }
+
             if (label === "Desa") {
               // update main store dan langsung navigasi ke desa yang dipilih
               if (typeof setMainDesaId === "function") setMainDesaId(id);

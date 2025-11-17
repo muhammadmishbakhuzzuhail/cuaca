@@ -113,6 +113,7 @@ const SearchDropdown = () => {
       try {
         // Revalidate title provinsi
         if (provinsiId) {
+          console.log("Revalidating provinsi for ID:", provinsiId);
           const provinsi = await getDataProvinsi();
           if (provinsi.data && provinsi.data.length > 0) {
             const found = provinsi.data?.find(
