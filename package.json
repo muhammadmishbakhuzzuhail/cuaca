@@ -14,6 +14,7 @@
       "@radix-ui/react-scroll-area": "^1.2.9",
       "@radix-ui/react-slot": "^1.2.3",
       "@tanstack/react-query": "^5.83.0",
+      "@vercel/speed-insights": "^1.2.0",
       "axios": "^1.10.0",
       "chart.js": "^4.5.0",
       "chartjs-plugin-datalabels": "^2.2.0",
